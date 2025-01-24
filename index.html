@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
   <meta charset="UTF-8">
@@ -9,12 +9,13 @@
 </head>
 
 <body>
-  <div>Teachable Machine Image Model</div>
+  <div>ピカチュウかミミッキュか判別します</div>
   <button type="button" onclick="init()">Start</button>
   <div id="webcam-container"></div>
   <div id="label-container"></div>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+  
   <script type="text/javascript">
     // More API functions here:
     // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
@@ -23,6 +24,7 @@
     const URL = "https://teachablemachine.withgoogle.com/models/gqDb40TWy/";
 
     let model, webcam, labelContainer, maxPredictions;
+    const threshold = 0.8; // 閾値を設定
 
     // Load the image model and setup the webcam
     async function init() {
@@ -46,9 +48,7 @@
       // append elements to the DOM
       document.getElementById("webcam-container").appendChild(webcam.canvas);
       labelContainer = document.getElementById("label-container");
-      for (let i = 0; i < maxPredictions; i++) { // and class labels
-        labelContainer.appendChild(document.createElement("div"));
-      }
+      labelContainer.appendChild(document.createElement("div")); // 結果表示用
     }
 
     async function loop() {
@@ -61,10 +61,21 @@
     async function predict() {
       // predict can take in an image, video or canvas html element
       const prediction = await model.predict(webcam.canvas);
-      for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction =
-          prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-        labelContainer.childNodes[i].innerHTML = classPrediction;
+
+      // 最も高い確率のクラスを見つける
+      let highestPrediction = null;
+      for (let i = 0; i < prediction.length; i++) {
+        if (!highestPrediction || prediction[i].probability > highestPrediction.probability) {
+          highestPrediction = prediction[i];
+        }
+      }
+
+      // 閾値を超えた場合のみ表示
+      if (highestPrediction && highestPrediction.probability >= threshold) {
+        labelContainer.childNodes[0].innerHTML =
+          highestPrediction.className + ": " + highestPrediction.probability.toFixed(2);
+      } else {
+        labelContainer.childNodes[0].innerHTML = "No strong prediction";
       }
     }
   </script>

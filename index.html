@@ -15,16 +15,15 @@
   <div id="label-container"></div>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-  
   <script type="text/javascript">
     // More API functions here:
     // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
 
     // the link to your model provided by Teachable Machine export panel
-    const URL = "https://teachablemachine.withgoogle.com/models/gqDb40TWy/";
+    const URL = "./pikachu_mimikyu/";
+    const threshold = 0.5;
 
     let model, webcam, labelContainer, maxPredictions;
-    const threshold = 0.5; // 閾値を設定
 
     // Load the image model and setup the webcam
     async function init() {
@@ -75,7 +74,7 @@
         labelContainer.childNodes[0].innerHTML =
           highestPrediction.className + ": " + highestPrediction.probability.toFixed(2);
       } else {
-        labelContainer.childNodes[0].innerHTML = "No strong prediction";
+        labelContainer.childNodes[0].innerHTML = "未検出";
       }
     }
   </script>

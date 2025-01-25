@@ -23,6 +23,7 @@
     npm i vite-plugin-pwa
     npm i --save-dev @types/node
     npm i @yamada-ui/react @yamada-ui/lucide
+    npm i @yamada-ui/charts
     npm i @teachablemachine/image
     ```
 1. ローカルで起動。

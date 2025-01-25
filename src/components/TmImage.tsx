@@ -25,6 +25,15 @@ const TmImage: React.FC = () => {
   // モデルの初期化
   useEffect(() => {
     (async () => {
+
+      if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+        setMessage("カメラのアクセス許可を求めています...");
+        await navigator.mediaDevices.getUserMedia({video: true})
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === "videoinput");
+        setMessage(`カメラのアクセス許可を得ました：${JSON.stringify(videoDevices)}${videoDevices.length}台のカメラが接続されています`);
+      }
+
       const modelURL = `${URL}model.json`;
       const metadataURL = `${URL}metadata.json`;
 
@@ -32,7 +41,7 @@ const TmImage: React.FC = () => {
         const loadedModel = await tmImage.load(modelURL, metadataURL);
         setModel(loadedModel);
         setLoadingModel(false);
-        setMessage("カメラをオンにしてね！");
+        //setMessage("カメラをオンにしてね！");
       } catch (error) {
         setMessage(`AIモデルの読み込みに失敗しました：${error}`);
       }

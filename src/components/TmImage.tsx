@@ -100,6 +100,9 @@ const TmImage: React.FC = () => {
       <Text mt="4" fontSize="lg" color="gray.700">
         {label}
       </Text>
+      <Text mt="4" fontSize="lg" color="gray.700">
+        {maxPredictions}
+      </Text>
     </Container>
   );
 };

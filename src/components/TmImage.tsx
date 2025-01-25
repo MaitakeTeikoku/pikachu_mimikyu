@@ -109,9 +109,9 @@ const TmImage: React.FC = () => {
   };
 
   return (
-    <Container centerContent h="100dvh">
+    <Container centerContent>
       <Text fontSize="xl">
-        ピカチュウ or ミミッキュ を判別！
+        ピカチュウ or ミミッキュ
       </Text>
 
       <Text mt="2" fontSize="lg">
@@ -134,7 +134,7 @@ const TmImage: React.FC = () => {
         />
       </Box>
 
-      <Box mt="2" width="100%">
+      <Box mt="2" maxW="100%">
         <BarChart
           data={predictions}
           series={series}

@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from "react";
 import * as tmImage from "@teachablemachine/image";
 import {
   Container, Box,
-  Text, Button, Select, Option,
+  Text, Button,
 } from "@yamada-ui/react";
 import { BarChart, BarProps } from "@yamada-ui/charts";
 
@@ -17,7 +17,7 @@ const TmImage: React.FC = () => {
   const [loadingModel, setLoadingModel] = useState<boolean>(true);
   const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
-  const [selectedVideoDevice, setSelectedVideoDevice] = useState<string>("");
+  //const [selectedVideoDevice, setSelectedVideoDevice] = useState<string>("");
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [predictions, setPredictions] = useState<{ name: string; value: number }[]>([
     { name: "ピカチュウ", value: 0 },
@@ -76,7 +76,7 @@ const TmImage: React.FC = () => {
     if (model) {
       try {
         const selectedDeviceId = videoDevices[0].deviceId;
-        
+
         const flip = true; // カメラを反転
         const webcam = new tmImage.Webcam(200, 200, flip); // 幅, 高さ, 反転
         webcamRef.current = webcam;

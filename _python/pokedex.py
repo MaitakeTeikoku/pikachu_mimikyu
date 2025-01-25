@@ -26,18 +26,20 @@ def get_pokemon_info(dex_number):
             if flavor['language']['name'] == 'ja'
         ]
         
+        """
         # フレーバーテキスト（日本語 ひらがな・カタカナ）
         flavor_texts_jahrkt = [
             flavor['flavor_text'] for flavor in data['flavor_text_entries'] 
             if flavor['language']['name'] == 'ja-Hrkt'
         ]
+        """
         
         return {
             'dex_number': dex_number,
             'name': name_ja,
             'genus': genus,
-            'flavor_texts_ja': flavor_texts_ja,
-            'flavor_texts_jahrkt': flavor_texts_jahrkt
+            'flavor_texts': flavor_texts_ja,
+            #'flavor_texts_jahrkt': flavor_texts_jahrkt
         }
     else:
         return None

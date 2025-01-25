@@ -4,7 +4,6 @@ import {
   Container, HStack, Box,
   Text, IconButton, Select, Option,
   useNotice,
-  is,
 } from "@yamada-ui/react";
 import { PlayIcon, PauseIcon } from "@yamada-ui/lucide";
 import { BarChart, BarProps } from "@yamada-ui/charts";
@@ -163,7 +162,7 @@ const TmImage: React.FC = () => {
           // 音声合成
           if (!window.speechSynthesis.speaking) {
             const utterance = new SpeechSynthesisUtterance();
-            const randomFlavorText = pokeData.flavor_texts_ja[Math.floor(Math.random() * pokeData.flavor_texts_ja.length)];
+            const randomFlavorText = pokeData.flavor_texts[Math.floor(Math.random() * pokeData.flavor_texts.length)];
             utterance.text = `${pokeData.name}、${pokeData.genus}、${randomFlavorText}`;
             utterance.lang = "ja-JP";
             window.speechSynthesis.speak(utterance);

@@ -8,11 +8,11 @@ import {
 import { PlayIcon, PauseIcon } from "@yamada-ui/lucide";
 import { BarChart, BarProps } from "@yamada-ui/charts";
 import { pokedex } from "./Pokedex";
-const pokedex_bg = "/pokedex_bg.png";
 
 const threshold = 0.9;
 //const URL = import.meta.env.DEV ? 'http://192.168.11.2:5173/models' : 'https://maitaketeikoku.github.io/pikachu_mimikyu/models';
-const URL = "/models";
+const URL = `${import.meta.env.BASE_URL}models`;
+const pokedex_bg = `${import.meta.env.BASE_URL}pokedex_bg.png`;
 
 const TmImage: React.FC = () => {
   const notice = useNotice({

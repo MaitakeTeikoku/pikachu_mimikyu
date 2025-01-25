@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import * as tmImage from "@teachablemachine/image";
 import {
-  Container, Box,
-  Text, Button,
+  Container, HStack, Box,
+  Text, IconButton, Select, Option,
 } from "@yamada-ui/react";
+import { PlayIcon, PauseIcon } from "@yamada-ui/lucide";
 import { BarChart, BarProps } from "@yamada-ui/charts";
 
 const threshold = 0.8;
@@ -13,22 +14,21 @@ const TmImage: React.FC = () => {
   const webcamRef = useRef<tmImage.Webcam | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [message, setMessage] = useState<string>("AIモデルを読み込んでいるよ...");
+  const [message, setMessage] = useState<string>("カメラへのアクセスを許可してね！");
   const [loadingModel, setLoadingModel] = useState<boolean>(true);
   const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
-  //const [selectedVideoDevice, setSelectedVideoDevice] = useState<string>("");
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [predictions, setPredictions] = useState<{ name: string; value: number }[]>([
     { name: "ピカチュウ", value: 0 },
     { name: "ミミッキュ", value: 0 },
   ]);
 
-  // モデルの初期化
+  // カメラの対応確認と、モデルの初期化
   useEffect(() => {
     (async () => {
       if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
-        setMessage("カメラへのアクセスを許可してね！");
         // カメラのアクセス許可を求める
         await navigator.mediaDevices.getUserMedia({ video: true });
 
@@ -46,8 +46,14 @@ const TmImage: React.FC = () => {
             return 0;
           });
         setVideoDevices(videoDevices);
-        setMessage(`${videoDevices.length}台のカメラが接続されているよ！`);
+        setSelectedDeviceId(videoDevices[0]?.deviceId);
+      } else {
+        setMessage("このブラウザはカメラに対応していないよ");
+        setLoadingModel(false);
+        return;
       }
+
+      setMessage("AIモデルを読み込んでいるよ...");
 
       const modelURL = `${URL}model.json`;
       const metadataURL = `${URL}metadata.json`;
@@ -56,7 +62,7 @@ const TmImage: React.FC = () => {
         const loadedModel = await tmImage.load(modelURL, metadataURL);
         setModel(loadedModel);
         setLoadingModel(false);
-        //setMessage("カメラをオンにしてね！");
+        setMessage("カメラを選んでスタートしてね！");
       } catch (error) {
         setMessage(`AIモデルの読み込みに失敗しました：${error}`);
       }
@@ -73,11 +79,16 @@ const TmImage: React.FC = () => {
 
   // Webカメラの初期化
   const start = async () => {
-    if (model) {
+    if (model && videoDevices && selectedDeviceId) {
       try {
-        const selectedDeviceId = videoDevices[0].deviceId;
+        const selectedDevice = videoDevices.find((device) => device.deviceId === selectedDeviceId);
+        if (!selectedDevice) {
+          setMessage("選択されたカメラが見つかりませんでした。");
+          return;
+        }
 
-        const flip = true; // カメラを反転
+        const isBackCamera = selectedDevice.label.includes("背面") || selectedDevice.label.toLowerCase().includes("back");
+        const flip = !isBackCamera;
         const webcam = new tmImage.Webcam(200, 200, flip); // 幅, 高さ, 反転
         webcamRef.current = webcam;
         await webcam.setup({ deviceId: selectedDeviceId });
@@ -134,33 +145,51 @@ const TmImage: React.FC = () => {
     }
   };
 
+  const stop = () => {
+    if (webcamRef.current) {
+      webcamRef.current.stop();
+    }
+    setIsCameraActive(false);
+    setMessage("カメラを停止しました");
+  };
+
   return (
     <Container centerContent>
-      <Text fontSize="xl">
-        ピカチュウ or ミミッキュ
-      </Text>
-
-      <Text mt="2" fontSize="lg">
+      <Text fontSize="lg" mt="2" >
         {message}
       </Text>
 
-      <Button
-        onClick={start}
-        isDisabled={isCameraActive || loadingModel}
-        colorScheme="blue"
-        mt="2"
-      >
-        カメラをオンにする
-      </Button>
+      <HStack mt="2" w="full">
+        <Select
+          value={selectedDeviceId}
+          onChange={setSelectedDeviceId}
+          isDisabled={isCameraActive}
+          defaultValue={videoDevices[0]?.deviceId}
+          placeholderInOptions={false}
+        >
+          {videoDevices.map((device) => (
+            <Option key={device.deviceId} value={device.deviceId}>
+              {device.label || "不明なカメラ"}
+            </Option>
+          ))}
+        </Select>
 
-      <Box mt="2" width="100%">
+        <IconButton
+          icon={isCameraActive ? <PauseIcon /> : <PlayIcon />}
+          onClick={isCameraActive ? stop : start}
+          isDisabled={loadingModel}
+          colorScheme="primary"
+        />
+      </HStack>
+
+      <Box width="100%" maxW="xl" mt="2">
         <canvas
           ref={canvasRef}
           style={{ width: "100%", height: "auto" }}
         />
       </Box>
 
-      <Box mt="2" maxW="100%">
+      <Box maxW="100%" mt="2">
         <BarChart
           data={predictions}
           series={series}

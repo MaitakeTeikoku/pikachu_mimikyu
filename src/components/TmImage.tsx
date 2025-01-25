@@ -13,10 +13,10 @@ const TmImage: React.FC = () => {
   const webcamRef = useRef<tmImage.Webcam | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null);
-  const [label, setLabel] = useState<string>("AIモデルを読み込んでいるよ...");
-  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("AIモデルを読み込んでいるよ...");
   const [loadingModel, setLoadingModel] = useState<boolean>(true);
+  const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [predictions, setPredictions] = useState<{ name: string; value: number }[]>([
     { name: "ピカチュウ", value: 0 },
     { name: "ミミッキュ", value: 0 },
@@ -32,9 +32,9 @@ const TmImage: React.FC = () => {
         const loadedModel = await tmImage.load(modelURL, metadataURL);
         setModel(loadedModel);
         setLoadingModel(false);
-        setLabel("カメラをオンにしてね！");
+        setMessage("カメラをオンにしてね！");
       } catch (error) {
-        setLabel(`AIモデルの読み込みに失敗しました：${error}`);
+        setMessage(`AIモデルの読み込みに失敗しました：${error}`);
       }
     })();
   }, []);
@@ -47,14 +47,44 @@ const TmImage: React.FC = () => {
     [],
   );
 
+  // 背面カメラを選択する関数
+  const getBackCameraStream = async (): Promise<MediaStream | null> => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === "videoinput");
+    const backCamera = videoDevices.find(device => device.label.toLowerCase().includes("back"));
+
+    let constraints: MediaStreamConstraints;
+
+    if (backCamera) {
+      // 背面カメラを使用
+      constraints = { video: { deviceId: backCamera.deviceId } };
+    } else if (videoDevices.length > 0) {
+      // 最初のカメラを使用
+      setMessage("背面カメラが見つからなかったため、デフォルトのカメラを使用するよ！");
+      constraints = { video: { deviceId: videoDevices[0].deviceId } };
+      return null;
+    } else {
+      // カメラが見つからない場合
+      throw new Error("カメラが見つかりません。");
+    }
+
+    return navigator.mediaDevices.getUserMedia(constraints);
+  };
+
   // Webカメラの初期化
   const start = async () => {
     if (model) {
       try {
+        const stream = await getBackCameraStream();
+
         const flip = true; // カメラを反転
         const webcam = new tmImage.Webcam(200, 200, flip); // 幅, 高さ, 反転
         webcamRef.current = webcam;
-        await webcam.setup(); // カメラへのアクセス許可
+        await webcam.setup();
+        if (stream) {
+          webcam.webcam.srcObject = stream;
+        }
+
         await webcam.play();
 
         // カメラ映像を描画
@@ -67,7 +97,7 @@ const TmImage: React.FC = () => {
         window.requestAnimationFrame(loop);
       } catch (error) {
         setIsCameraActive(false);
-        setLabel(`カメラの起動に失敗しました：${error}`);
+        setMessage(`カメラの起動に失敗しました：${error}`);
       }
     }
   };
@@ -101,9 +131,9 @@ const TmImage: React.FC = () => {
 
       // 閾値以上の場合のみラベルを表示
       if (highestPrediction.probability >= threshold) {
-        setLabel(`${highestPrediction.className}`);
+        setMessage(`${highestPrediction.className}`);
       } else {
-        setLabel("未検出");
+        setMessage("未検出");
       }
     }
   };
@@ -115,7 +145,7 @@ const TmImage: React.FC = () => {
       </Text>
 
       <Text mt="2" fontSize="lg">
-        {label}
+        {message}
       </Text>
 
       <Button

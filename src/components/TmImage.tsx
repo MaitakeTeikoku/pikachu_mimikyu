@@ -3,16 +3,26 @@ import * as tmImage from "@teachablemachine/image";
 import {
   Container, HStack, Box,
   Text, IconButton, Select, Option,
+  useNotice,
+  is,
 } from "@yamada-ui/react";
 import { PlayIcon, PauseIcon } from "@yamada-ui/lucide";
 import { BarChart, BarProps } from "@yamada-ui/charts";
+import { pokedex } from "./Pokedex";
 
-const threshold = 0.8;
-const URL = "https://teachablemachine.withgoogle.com/models/gqDb40TWy/";
+const threshold = 0.9;
+const URL = import.meta.env.DEV ? 'http://192.168.11.2:5173/models/' : 'https://maitaketeikoku.github.io/pikachu_mimikyu/models/';
 
 const TmImage: React.FC = () => {
+  const notice = useNotice({
+    limit: 1,
+    isClosable: true,
+    placement: "bottom",
+  });
+
   const webcamRef = useRef<tmImage.Webcam | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const noticeRef = useRef<string | number | undefined>(undefined)
 
   const [message, setMessage] = useState<string>("カメラへのアクセスを許可してね！");
   const [loadingModel, setLoadingModel] = useState<boolean>(true);
@@ -63,8 +73,8 @@ const TmImage: React.FC = () => {
         setModel(loadedModel);
         setLoadingModel(false);
         setMessage("カメラを選んでスタートしてね！");
-      } catch (error) {
-        setMessage(`AIモデルの読み込みに失敗しました：${error}`);
+      } catch (e) {
+        setMessage(`AIモデルの読み込みに失敗しました：${e}`);
       }
     })();
   }, []);
@@ -104,9 +114,11 @@ const TmImage: React.FC = () => {
 
         setIsCameraActive(true);
         window.requestAnimationFrame(loop);
-      } catch (error) {
+
+        setMessage("ピカチュウまたはミミッキュを見つけてね！");
+      } catch (e) {
         setIsCameraActive(false);
-        setMessage(`カメラの起動に失敗しました：${error}`);
+        setMessage(`カメラの起動に失敗しました：${e}`);
       }
     }
   };
@@ -140,18 +152,60 @@ const TmImage: React.FC = () => {
 
       // 閾値以上の場合のみラベルを表示
       if (highestPrediction.probability >= threshold) {
-        setMessage(`${highestPrediction.className}`);
+        //setMessage(`${highestPrediction.className}`);
+
+        const pokeData = pokedex.find((data) => data.name === highestPrediction.className);
+        if (!pokeData) {
+          return;
+        }
+
+        try {
+          // 音声合成
+          if (!window.speechSynthesis.speaking) {
+            const utterance = new SpeechSynthesisUtterance();
+            const randomFlavorText = pokeData.flavor_texts_ja[Math.floor(Math.random() * pokeData.flavor_texts_ja.length)];
+            utterance.text = `${pokeData.name}、${pokeData.genus}、${randomFlavorText}`;
+            utterance.lang = "ja-JP";
+            window.speechSynthesis.speak(utterance);
+          }
+        } catch (e) {
+          setMessage(`音声合成に失敗しました：${e}`);
+        }
+
+        if (noticeRef.current) {
+          notice.update(noticeRef.current, {
+            title: pokeData.name,
+            description: pokeData.genus,
+            status: "info",
+          });
+        } else {
+          noticeRef.current = notice({
+            title: pokeData.name,
+            description: pokeData.genus,
+            status: "info",
+          });
+        }
+
       } else {
-        setMessage("未検出");
+        if (noticeRef.current) {
+          notice.close(noticeRef.current);
+          noticeRef.current = undefined;
+        }
+        //setMessage("未検出");
       }
     }
   };
 
   const stop = () => {
+    setIsCameraActive(false);
+
     if (webcamRef.current) {
       webcamRef.current.stop();
     }
-    setIsCameraActive(false);
+
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
   };
 
   return (

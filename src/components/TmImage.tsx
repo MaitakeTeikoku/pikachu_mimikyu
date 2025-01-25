@@ -177,7 +177,7 @@ const TmImage: React.FC = () => {
             utterance.text = `${pokeData.name}、${pokeData.genus}、${randomFlavorText}`;
             utterance.lang = "ja-JP";
             utterance.pitch = 1;
-            utterance.rate = 1.5;
+            utterance.rate = 1;
             utterance.volume = 1;
 
             window.speechSynthesis.speak(utterance);

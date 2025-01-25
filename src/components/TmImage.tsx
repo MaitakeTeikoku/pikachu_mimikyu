@@ -165,6 +165,9 @@ const TmImage: React.FC = () => {
             const randomFlavorText = pokeData.flavor_texts[Math.floor(Math.random() * pokeData.flavor_texts.length)];
             utterance.text = `${pokeData.name}、${pokeData.genus}、${randomFlavorText}`;
             utterance.lang = "ja-JP";
+            utterance.pitch = 1;
+            utterance.rate = 1;
+            utterance.volume = 1;
             window.speechSynthesis.speak(utterance);
           }
         } catch (e) {

@@ -8,13 +8,16 @@ import {
 import { PlayIcon, PauseIcon } from "@yamada-ui/lucide";
 import { BarChart, BarProps } from "@yamada-ui/charts";
 import { pokedex } from "./Pokedex";
+const pokedex_bg = "/pokedex_bg.png";
 
 const threshold = 0.9;
-const URL = import.meta.env.DEV ? 'http://192.168.11.2:5173/models/' : 'https://maitaketeikoku.github.io/pikachu_mimikyu/models/';
+//const URL = import.meta.env.DEV ? 'http://192.168.11.2:5173/models' : 'https://maitaketeikoku.github.io/pikachu_mimikyu/models';
+const URL = "/models";
 
 const TmImage: React.FC = () => {
   const notice = useNotice({
     limit: 1,
+    duration: null,
     isClosable: true,
     placement: "bottom",
   });
@@ -64,8 +67,8 @@ const TmImage: React.FC = () => {
 
       setMessage("AIモデルを読み込んでいるよ...");
 
-      const modelURL = `${URL}model.json`;
-      const metadataURL = `${URL}metadata.json`;
+      const modelURL = `${URL}/model.json`;
+      const metadataURL = `${URL}/metadata.json`;
 
       try {
         const loadedModel = await tmImage.load(modelURL, metadataURL);
@@ -223,12 +226,12 @@ const TmImage: React.FC = () => {
   };
 
   return (
-    <Container centerContent>
-      <Text fontSize="lg" mt="2" >
+    <Container centerContent h="100dvh">
+      <Text fontSize="lg">
         {message}
       </Text>
 
-      <HStack w="full" maxW="xl" mt="2">
+      <HStack w="full" maxW="xl">
         <Select
           value={selectedDeviceId}
           onChange={setSelectedDeviceId}
@@ -254,14 +257,30 @@ const TmImage: React.FC = () => {
         />
       </HStack>
 
-      <Box width="100%" maxW="xl" mt="2">
+      <Box
+        rounded="md"
+        backgroundImage={pokedex_bg}
+        backgroundSize="cover"
+        backgroundRepeat="no-repeat"
+        bgColor="red.500"
+        width="100%"
+        maxW="xl"
+        p="2"
+      >
         <canvas
           ref={canvasRef}
-          style={{ width: "100%", height: "auto" }}
+          style={{
+            width: "100%",
+            height: "auto",
+            marginTop: "45%",
+            backgroundColor: "#1c1c1c",
+            border: "4px solid #d3d5da",
+            borderRadius: "12px"
+          }}
         />
       </Box>
 
-      <Box width="100%" maxW="xl" mt="2">
+      <Box width="100%" maxW="xl">
         <BarChart
           data={predictions}
           series={series}

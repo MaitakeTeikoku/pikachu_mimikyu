@@ -89,7 +89,7 @@ const TmImage: React.FC = () => {
 
         const isBackCamera = selectedDevice.label.includes("背面") || selectedDevice.label.toLowerCase().includes("back");
         const flip = !isBackCamera;
-        const webcam = new tmImage.Webcam(200, 200, flip); // 幅, 高さ, 反転
+        const webcam = new tmImage.Webcam(640, 360, flip); // 幅, 高さ, 反転
         webcamRef.current = webcam;
         await webcam.setup({ deviceId: selectedDeviceId });
         await webcam.play();
@@ -97,6 +97,8 @@ const TmImage: React.FC = () => {
         // カメラ映像を描画
         const canvas = canvasRef.current;
         if (canvas) {
+          canvas.width = webcam.width;
+          canvas.height = webcam.height;
           webcam.canvas = canvas;
         }
 
@@ -150,7 +152,6 @@ const TmImage: React.FC = () => {
       webcamRef.current.stop();
     }
     setIsCameraActive(false);
-    setMessage("カメラを停止しました");
   };
 
   return (
@@ -159,13 +160,16 @@ const TmImage: React.FC = () => {
         {message}
       </Text>
 
-      <HStack mt="2" w="full">
+      <HStack w="full" maxW="xl" mt="2">
         <Select
           value={selectedDeviceId}
           onChange={setSelectedDeviceId}
           isDisabled={isCameraActive}
           defaultValue={videoDevices[0]?.deviceId}
           placeholderInOptions={false}
+          whiteSpace='nowrap'
+          overflow='hidden'
+          textOverflow='ellipsis'
         >
           {videoDevices.map((device) => (
             <Option key={device.deviceId} value={device.deviceId}>
@@ -189,7 +193,7 @@ const TmImage: React.FC = () => {
         />
       </Box>
 
-      <Box maxW="100%" mt="2">
+      <Box width="100%" maxW="xl" mt="2">
         <BarChart
           data={predictions}
           series={series}

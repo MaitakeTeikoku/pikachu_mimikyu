@@ -47,44 +47,14 @@ const TmImage: React.FC = () => {
     [],
   );
 
-  // 背面カメラを選択する関数
-  const getBackCameraStream = async (): Promise<MediaStream | null> => {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(device => device.kind === "videoinput");
-    const backCamera = videoDevices.find(device => device.label.toLowerCase().includes("back"));
-
-    let constraints: MediaStreamConstraints;
-
-    if (backCamera) {
-      // 背面カメラを使用
-      constraints = { video: { deviceId: backCamera.deviceId } };
-    } else if (videoDevices.length > 0) {
-      // 最初のカメラを使用
-      setMessage("背面カメラが見つからなかったため、デフォルトのカメラを使用するよ！");
-      constraints = { video: { deviceId: videoDevices[0].deviceId } };
-      return null;
-    } else {
-      // カメラが見つからない場合
-      throw new Error("カメラが見つかりません。");
-    }
-
-    return navigator.mediaDevices.getUserMedia(constraints);
-  };
-
   // Webカメラの初期化
   const start = async () => {
     if (model) {
       try {
-        const stream = await getBackCameraStream();
-
         const flip = true; // カメラを反転
         const webcam = new tmImage.Webcam(200, 200, flip); // 幅, 高さ, 反転
         webcamRef.current = webcam;
-        await webcam.setup();
-        if (stream) {
-          webcam.webcam.srcObject = stream;
-        }
-
+        await webcam.setup(); // カメラへのアクセス許可
         await webcam.play();
 
         // カメラ映像を描画

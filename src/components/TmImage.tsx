@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from "react";
 import * as tmImage from "@teachablemachine/image";
 import {
   Container, Box,
-  Text, Button,
+  Text, Button, Select, Option,
 } from "@yamada-ui/react";
 import { BarChart, BarProps } from "@yamada-ui/charts";
 
@@ -16,6 +16,8 @@ const TmImage: React.FC = () => {
   const [message, setMessage] = useState<string>("AIモデルを読み込んでいるよ...");
   const [loadingModel, setLoadingModel] = useState<boolean>(true);
   const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null);
+  const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+  const [selectedVideoDevice, setSelectedVideoDevice] = useState<string>("");
   const [isCameraActive, setIsCameraActive] = useState<boolean>(false);
   const [predictions, setPredictions] = useState<{ name: string; value: number }[]>([
     { name: "ピカチュウ", value: 0 },
@@ -25,13 +27,26 @@ const TmImage: React.FC = () => {
   // モデルの初期化
   useEffect(() => {
     (async () => {
-
       if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
-        setMessage("カメラのアクセス許可を求めています...");
-        await navigator.mediaDevices.getUserMedia({video: true})
+        setMessage("カメラへのアクセスを許可してね！");
+        // カメラのアクセス許可を求める
+        await navigator.mediaDevices.getUserMedia({ video: true });
+
+        // カメラのデバイス一覧を取得
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === "videoinput");
-        setMessage(`カメラのアクセス許可を得ました：${JSON.stringify(videoDevices)}${videoDevices.length}台のカメラが接続されています`);
+        // ビデオデバイスのみを抽出し、背面カメラを優先してソート
+        const videoDevices = devices
+          .filter((device) => device.kind === "videoinput")
+          .sort((a, b) => {
+            const aIsBack = a.label.includes("背面") || a.label.toLowerCase().includes("back");
+            const bIsBack = b.label.includes("背面") || b.label.toLowerCase().includes("back");
+
+            if (aIsBack && !bIsBack) return -1;
+            if (!aIsBack && bIsBack) return 1;
+            return 0;
+          });
+        setVideoDevices(videoDevices);
+        setMessage(`${videoDevices.length}台のカメラが接続されているよ！`);
       }
 
       const modelURL = `${URL}model.json`;
@@ -60,10 +75,12 @@ const TmImage: React.FC = () => {
   const start = async () => {
     if (model) {
       try {
+        const selectedDeviceId = videoDevices[0].deviceId;
+        
         const flip = true; // カメラを反転
         const webcam = new tmImage.Webcam(200, 200, flip); // 幅, 高さ, 反転
         webcamRef.current = webcam;
-        await webcam.setup(); // カメラへのアクセス許可
+        await webcam.setup({ deviceId: selectedDeviceId });
         await webcam.play();
 
         // カメラ映像を描画

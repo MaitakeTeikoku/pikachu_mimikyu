@@ -22,7 +22,8 @@ def get_pokemon_info(dex_number):
         
         # フレーバーテキスト（日本語 漢字）
         flavor_texts_ja = [
-            flavor['flavor_text'] for flavor in data['flavor_text_entries'] 
+            flavor['flavor_text'].replace('　', '').replace('\n', '').strip()
+            for flavor in data['flavor_text_entries']
             if flavor['language']['name'] == 'ja'
         ]
         

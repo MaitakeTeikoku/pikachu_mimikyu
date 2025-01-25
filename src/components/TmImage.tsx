@@ -90,6 +90,17 @@ const TmImage: React.FC = () => {
   const start = async () => {
     if (model && videoDevices && selectedDeviceId) {
       try {
+        // ダミーの音声合成を実行して、音声合成が利用可能か確認
+        const speechSynthesis = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance('');
+        utterance.volume = 0;
+        speechSynthesis.speak(utterance);
+        speechSynthesis.cancel();
+      } catch (e) {
+        setMessage(`音声合成に失敗しました：${e}`);
+      }
+
+      try {
         const selectedDevice = videoDevices.find((device) => device.deviceId === selectedDeviceId);
         if (!selectedDevice) {
           setMessage("選択されたカメラが見つかりませんでした。");
@@ -166,8 +177,9 @@ const TmImage: React.FC = () => {
             utterance.text = `${pokeData.name}、${pokeData.genus}、${randomFlavorText}`;
             utterance.lang = "ja-JP";
             utterance.pitch = 1;
-            utterance.rate = 1;
+            utterance.rate = 1.5;
             utterance.volume = 1;
+
             window.speechSynthesis.speak(utterance);
           }
         } catch (e) {

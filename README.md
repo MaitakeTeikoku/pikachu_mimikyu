@@ -1,7 +1,7 @@
 ## React(Vite)プロジェクト構築
 1. GitHubからクローン。
     ```sh
-    git clone https://github.com/kinakokyoryu/pikachu_mimikyu.git
+    git clone https://github.com/MaitakeTeikoku/pikachu_mimikyu.git
     ```
 1. Reactのプロジェクトを作成。
     ```sh
